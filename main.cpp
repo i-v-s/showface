@@ -1,9 +1,17 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+
 #include "loader.h"
+#include "result.h"
 
 int main(int argc, char *argv[])
 {
+    // TODO: auto s = QSslSocket::supportsSsl();
+    //QString b = QSslSocket::sslLibraryBuildVersionString();
+    //QString v = QSslSocket::sslLibraryVersionString();
+    //printf(b.toLocal8Bit().data());
+    //printf(v.toLocal8Bit().data());
+
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
@@ -11,6 +19,7 @@ int main(int argc, char *argv[])
     app.setOrganizationDomain("tevian.ru");
     app.setApplicationName("Show Face Application");
     qmlRegisterType<Loader>("showface.backend", 1, 0, "Loader");
+    qmlRegisterType<Result>("showface.backend", 1, 0, "Result");
 
     QQmlApplicationEngine engine;
     const QUrl url(QStringLiteral("qrc:/main.qml"));

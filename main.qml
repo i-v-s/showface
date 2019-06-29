@@ -12,8 +12,10 @@ Window {
     height: 480
     title: qsTr("Show faces")
     property var files: []
+    property var faces: []
     property int fileIndex: 0
     property real surfaceViewportRatio: 1.5
+    property Result result: null
     Loader {
         id: loader
     }
@@ -25,10 +27,9 @@ Window {
         selectMultiple: true
         nameFilters: [ "Image files (*.jpg *.png *.gif)", "All files (*)" ]
         onAccepted: {
-            console.log(fileDialog.fileUrls);
             loader.files = fileDialog.fileUrls
-            main.fileIndex = 0;
             main.files = fileDialog.fileUrls;
+            setIndex(0);
         }
     }
     function postPhoto(fn) {
@@ -49,16 +50,24 @@ Window {
                 id: toolButtonOpen
                 x: 0
                 y: 0
-                width: 76
+                width: 110
                 height: 40
-                text: qsTr("Open")
+                text: qsTr("Open images")
             }
 
             ProgressBar {
                 id: progressBar
                 x: 124
                 y: 17
-                value: 0.5
+                value: loader.percentCompleted / 100
+            }
+
+            Text {
+                id: progressText
+                x: 366
+                y: 13
+                text: loader.percentCompleted.toFixed(1) + '%'
+                font.pixelSize: 12
             }
         }
 
@@ -97,6 +106,27 @@ Window {
                         fillMode: Image.PreserveAspectFit
                         antialiasing: true
                         source: (files.length > fileIndex) ? files[fileIndex] : ''
+                        Repeater {
+                            model: (result && result.ready) ? result.faces : []
+                            Item {
+                                Rectangle {
+                                    width: modelData.bbox.width
+                                    height: modelData.bbox.height
+                                    x: modelData.bbox.x
+                                    y: modelData.bbox.y
+                                    border.color: "green"
+                                    border.width: 2
+                                    color: "transparent"
+                                }
+                                Text {
+                                    text: modelData.demographics.gender + ' - ' + modelData.demographics.age.mean.toFixed(1)
+                                    x: modelData.bbox.x
+                                    y: modelData.bbox.y + modelData.bbox.height
+                                    color: "blue"
+                                }
+                            }
+                        }
+
                     }
                     MouseArea {
                         id: dragArea
@@ -109,13 +139,6 @@ Window {
                             photoFrame.scale += photoFrame.scale * wheel.angleDelta.y / 120 / 5;
                         }
                     }
-
-                    Repeater {
-                        model: ['C:\\Users\\user\\Pictures\\hot_shapers.jpg']
-                        Rectangle {
-
-                        }
-                    }
                 }
             }
 
@@ -126,7 +149,7 @@ Window {
                 height: 42
                 text: qsTr("🢀")
                 visible: fileIndex > 0
-                onClicked: main.fileIndex--
+                onClicked: setIndex(main.fileIndex - 1)
                 anchors.left: parent.left
                 anchors.leftMargin: 0
                 anchors.verticalCenter: parent.verticalCenter
@@ -143,7 +166,7 @@ Window {
                 height: 42
                 text: qsTr("🢂")
                 visible: fileIndex < files.length - 1
-                onClicked: main.fileIndex++
+                onClicked: setIndex(main.fileIndex + 1)
                 anchors.right: parent.right
                 anchors.rightMargin: 0
                 anchors.verticalCenter: parent.verticalCenter
@@ -151,6 +174,10 @@ Window {
             }
         }
 
+    }
+    function setIndex(index) {
+        main.fileIndex = index;
+        main.result = loader.results[index];
     }
 
     Connections {
