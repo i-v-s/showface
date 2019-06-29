@@ -17,7 +17,9 @@ QList<QUrl> prepareNames(QStringList names)
         QFileInfo fileInfo(name);
         if (fileInfo.isDir()) {
             QDir dir(name);
-            auto list = prepareNames(dir.entryList());
+            auto nameList = dir.entryList(QDir::NoDotAndDotDot | QDir::Dirs | QDir::Files);
+            std::transform(nameList.begin(), nameList.end(), nameList.begin(), [&dir](auto name){return dir.filePath(name);});
+            auto list = prepareNames(nameList);
             for (const auto &item: list)
                 result.append(item);
         } else if (fileInfo.isFile() && extensions.contains(fileInfo.suffix()))
@@ -43,18 +45,18 @@ int main(int argc, char *argv[])
     const auto urls = prepareNames(parser.positionalArguments());
     Loader loader;
     loader.setFiles(urls);
-    int ready = 0;
+    int readyCount = 0;
     for (int i = 0; i < urls.length(); i++) {
         auto result = loader.result(i);
-        QObject::connect(result, &Result::readyChanged, [i, result, &ready, &urls, &app](bool r) {
-            if (r) {
-                ready++;
+        QObject::connect(result, &Result::readyChanged, [i, result, &readyCount, &urls, &app](bool ready) {
+            if (ready) {
+                readyCount++;
                 auto jsonFileName = urls[i].toLocalFile() + ".json";
                 QFile jsonFile(jsonFileName);
                 jsonFile.open(QFile::WriteOnly);
                 jsonFile.write(QJsonDocument::fromVariant(result->faces()).toJson());
-                qInfo() << jsonFileName << "processed. Completed" << ready << "out of" << urls.size();
-                if (ready == urls.size())
+                qInfo() << jsonFileName << "processed. Completed" << readyCount << "out of" << urls.size();
+                if (readyCount == urls.size())
                     app.exit();
             }
         });
