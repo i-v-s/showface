@@ -6,7 +6,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QDebug>
+#include <QTextStream>
 #include "loader.h"
 
 QList<QUrl> prepareNames(QStringList names)
@@ -22,9 +22,9 @@ QList<QUrl> prepareNames(QStringList names)
             auto list = prepareNames(nameList);
             for (const auto &item: list)
                 result.append(item);
-        } else if (fileInfo.isFile() && extensions.contains(fileInfo.suffix()))
+        } else if (fileInfo.isFile() && extensions.contains(fileInfo.suffix().toLower()))
             result.append(QUrl::fromLocalFile(name));
-        else qWarning() << name << " is not an image";
+        else QTextStream(stdout) << QString("Warning: %1 is not an image").arg(name) << endl;
     }
     return result;
 }
@@ -42,24 +42,40 @@ int main(int argc, char *argv[])
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
     parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file to copy."));
     parser.process(app);
-    const auto urls = prepareNames(parser.positionalArguments());
+    auto urls = prepareNames(parser.positionalArguments());
+    if (urls.empty())
+        return 0;
     Loader loader;
+    urls[0] = QUrl::fromLocalFile("aaa");
     loader.setFiles(urls);
-    int readyCount = 0;
+    int processedCount = 0;
     for (int i = 0; i < urls.length(); i++) {
         auto result = loader.result(i);
-        QObject::connect(result, &Result::readyChanged, [i, result, &readyCount, &urls, &app](bool ready) {
-            if (ready) {
-                readyCount++;
-                auto jsonFileName = urls[i].toLocalFile() + ".json";
-                QFile jsonFile(jsonFileName);
-                jsonFile.open(QFile::WriteOnly);
-                jsonFile.write(QJsonDocument::fromVariant(result->faces()).toJson());
-                qInfo() << jsonFileName << "processed. Completed" << readyCount << "out of" << urls.size();
-                if (readyCount == urls.size())
+        auto handleError = [&, i](const QVariant &errorMessage){
+            if (errorMessage.isValid()) {
+                processedCount++;
+                QTextStream(stdout) << QString("%1/%2: %3 [%4]").arg(processedCount).arg(urls.size()).arg(errorMessage.toString()).arg(urls[i].toLocalFile()) << endl;
+                if (processedCount == urls.size())
                     app.exit();
-            }
-        });
+                return true;
+            } else
+                return false;
+        };
+        if (!handleError(result->errorMessage())) {
+            QObject::connect(result, &Result::errorMessageChanged, handleError);
+            QObject::connect(result, &Result::readyChanged, [&, i, result](bool ready) {
+                if (ready) {
+                    processedCount++;
+                    auto jsonFileName = urls[i].toLocalFile() + ".json";
+                    QFile jsonFile(jsonFileName);
+                    jsonFile.open(QFile::WriteOnly);
+                    jsonFile.write(QJsonDocument::fromVariant(result->faces()).toJson());
+                    QTextStream(stdout) << QString("%1/%2: Writed %3").arg(processedCount).arg(urls.size()).arg(jsonFileName) << endl;
+                    if (processedCount == urls.size())
+                        app.exit();
+                }
+            });
+        }
     }
     return app.exec();
 }

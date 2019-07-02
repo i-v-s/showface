@@ -19,13 +19,6 @@ void Result::uploadFinished()
         emit readyChanged(m_ready);
         emit percentCompletedChanged(m_percentCompleted);
     }
-    else // handle error
-    {
-        QByteArray response = m_networkReply->readAll();
-        QString s = response;
-        qDebug() << m_networkReply->errorString();
-
-    }
     m_networkReply = nullptr;
 }
 
@@ -35,7 +28,20 @@ void Result::uploadProgress(qint64 bytesSent, quint64 bytesTotal)
     emit percentCompletedChanged(m_percentCompleted);
 }
 
-Result::Result(QObject *parent) : QObject(parent), m_ready(false), m_percentCompleted(0.0f)
+void Result::networkError(QNetworkReply::NetworkError)
+{
+    m_errorMessage = m_networkReply->errorString();
+    emit errorMessageChanged(m_errorMessage);
+}
+
+Result::Result(QObject *parent) :
+    QObject(parent), m_ready(false), m_percentCompleted(0.0f)
+{
+
+}
+
+Result::Result(const QString &errorMessage, QObject *parent) :
+    QObject(parent), m_ready(false), m_percentCompleted(0.0f), m_errorMessage(errorMessage)
 {
 
 }
@@ -45,6 +51,7 @@ Result::Result(std::unique_ptr<QNetworkReply> networkReply, std::unique_ptr<QIOD
 {
     connect(m_networkReply.get(), &QNetworkReply::finished, this, &Result::uploadFinished);
     connect(m_networkReply.get(), &QNetworkReply::uploadProgress, this, &Result::uploadProgress);
+    connect(m_networkReply.get(), static_cast<void (QNetworkReply::*)(QNetworkReply::NetworkError)>(&QNetworkReply::error), this, &Result::networkError);
 }
 
 QList<QVariant> Result::faces() const
@@ -60,4 +67,9 @@ bool Result::ready() const
 float Result::percentCompleted() const
 {
     return m_percentCompleted;
+}
+
+QVariant Result::errorMessage() const
+{
+    return m_errorMessage;
 }

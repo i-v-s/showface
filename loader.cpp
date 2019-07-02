@@ -12,10 +12,10 @@
 auto Loader::upload(const QUrl &url)
 {
     using namespace std;
-    auto file = make_unique<QFile>(url.toLocalFile());
+    auto localFileName = url.toLocalFile();
+    auto file = make_unique<QFile>(localFileName);
     if (!file->open(QIODevice::ReadOnly)) {
-        // TODO: emit imageUploaded(999, "Image not found");
-        return make_unique<Result>();
+        return make_unique<Result>(localFileName + ": file not found");
     }
     QNetworkRequest request(QUrl("https://backend.facecloud.tevian.ru/api/v1/detect?demographics=true"));
     request.setRawHeader("Content-Type", "image/jpeg");
