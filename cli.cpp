@@ -7,7 +7,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QTextStream>
-#include "loader.h"
+#include "faceloader.h"
 
 QList<QUrl> prepareNames(QStringList names)
 {
@@ -42,11 +42,10 @@ int main(int argc, char *argv[])
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
     parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file to copy."));
     parser.process(app);
-    auto urls = prepareNames(parser.positionalArguments());
+    const auto urls = prepareNames(parser.positionalArguments());
     if (urls.empty())
         return 0;
-    Loader loader;
-    urls[0] = QUrl::fromLocalFile("aaa");
+    FaceLoader loader;
     loader.setFiles(urls);
     int processedCount = 0;
     for (int i = 0; i < urls.length(); i++) {

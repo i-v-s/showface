@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt5 COMPONENTS Core Quick Network REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_library(faceloader "loader.cpp" "result.cpp")
+add_library(faceloader "faceloader.cpp" "result.cpp")
 target_link_libraries(faceloader PRIVATE Qt5::Core Qt5::Quick Qt5::Network OpenSSL::SSL)
 
 add_executable(${PROJECT_NAME} "main.cpp" "qml.qrc")

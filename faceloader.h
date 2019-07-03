@@ -10,7 +10,7 @@
 
 #include "result.h"
 
-class Loader : public QObject
+class FaceLoader : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QList<QUrl> files READ files WRITE setFiles NOTIFY filesChanged)
@@ -31,7 +31,7 @@ private:
     static Result* result(QQmlListProperty<Result>*list, int i);
 
 public:
-    explicit Loader(QObject *parent = nullptr);
+    explicit FaceLoader(QObject *parent = nullptr);
     QList<QUrl> files() const;
     float percentCompleted() const;
     QQmlListProperty<Result> results();

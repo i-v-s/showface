@@ -1,7 +1,7 @@
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
 
-#include "loader.h"
+#include "faceloader.h"
 #include "result.h"
 
 int main(int argc, char *argv[])
@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("Tevian");
     app.setOrganizationDomain("tevian.ru");
     app.setApplicationName("Show Face Application");
-    qmlRegisterType<Loader>("showface.backend", 1, 0, "Loader");
+    qmlRegisterType<FaceLoader>("showface.backend", 1, 0, "FaceLoader");
     qmlRegisterType<Result>("showface.backend", 1, 0, "Result");
 
     QQmlApplicationEngine engine;

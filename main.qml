@@ -12,11 +12,13 @@ Window {
     height: 480
     title: qsTr("Show faces")
     property var files: []
-    property var faces: []
     property int fileIndex: 0
+    property real defaultSize: 200
     property real surfaceViewportRatio: 1.5
     property Result result: null
-    Loader {
+    property var faces: result && result.ready ? result.faces : []
+
+    FaceLoader {
         id: loader
     }
 
@@ -32,11 +34,6 @@ Window {
             setIndex(0);
         }
     }
-    function postPhoto(fn) {
-        var request = new XMLHttpRequest()
-        request.open('POST', '')
-    }
-
     ColumnLayout {
         id: columnLayout
         anchors.fill: parent
@@ -71,72 +68,65 @@ Window {
             }
         }
 
-        Frame {
+        Item {
             id: frame
-            width: 200
-            height: 200
             clip: true
             Layout.fillHeight: true
             Layout.fillWidth: true
 
             Flickable {
                 id: flick
-                x: 20
-                y: 10
+                contentX: 0
+                contentY: 0
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 contentWidth: width * surfaceViewportRatio
                 contentHeight: height * surfaceViewportRatio
+                boundsBehavior: Flickable.StopAtBounds
+                ScrollBar.vertical: ScrollBar { }
+                ScrollBar.horizontal: ScrollBar { }
                 Rectangle {
                     id: photoFrame
-                    width: image.width * (1 + 0.10 * image.height / image.width)
-                    height: image.height * 1.10
-                    scale: defaultSize / Math.max(image.sourceSize.width, image.sourceSize.height)
-                    Behavior on scale { NumberAnimation { duration: 100 } }
-                    Behavior on x { NumberAnimation { duration: 100 } }
-                    Behavior on y { NumberAnimation { duration: 100 } }
-                    border.color: "black"
-                    border.width: 2
+                    width: image.width
+                    height: image.height
+                    scale: Math.min(frame.width / image.sourceSize.width, frame.height / image.sourceSize.height)
                     smooth: true
                     antialiasing: true
-
+                    onXChanged: updateFaces()
+                    onYChanged: updateFaces()
                     Image {
                         id: image
                         anchors.centerIn: parent
                         fillMode: Image.PreserveAspectFit
                         antialiasing: true
                         source: (files.length > fileIndex) ? files[fileIndex] : ''
-                        Repeater {
-                            model: (result && result.ready) ? result.faces : []
-                            Item {
-                                Rectangle {
-                                    width: modelData.bbox.width
-                                    height: modelData.bbox.height
-                                    x: modelData.bbox.x
-                                    y: modelData.bbox.y
-                                    border.color: "green"
-                                    border.width: 2
-                                    color: "transparent"
-                                }
-                                Text {
-                                    text: modelData.demographics.gender + ' - ' + modelData.demographics.age.mean.toFixed(1)
-                                    x: modelData.bbox.x
-                                    y: modelData.bbox.y + modelData.bbox.height
-                                    color: "blue"
-                                }
-                            }
-                        }
-
                     }
                     MouseArea {
                         id: dragArea
                         hoverEnabled: true
                         anchors.fill: parent
                         drag.target: photoFrame
-                        scrollGestureEnabled: false  // 2-finger-flick gesture should pass through to the Flickable
-                        onWheel: {
-                            var scaleBefore = photoFrame.scale;
-                            photoFrame.scale += photoFrame.scale * wheel.angleDelta.y / 120 / 5;
+                        scrollGestureEnabled: false
+                    }
+                }
+                Repeater {
+                    id: repeater
+                    model: []
+                    Item {
+                        Rectangle {
+                            width: modelData.bbox.width
+                            height: modelData.bbox.height
+                            x: modelData.bbox.x
+                            y: modelData.bbox.y
+                            border.color: "green"
+                            border.width: 2
+                            color: "transparent"
+                        }
+                        Text {
+                            text: modelData.text
+                            x: modelData.bbox.x
+                            y: modelData.bbox.y + modelData.bbox.height
+                            color: "blue"
                         }
                     }
                 }
@@ -172,17 +162,97 @@ Window {
                 anchors.verticalCenter: parent.verticalCenter
                 font.pointSize: 20
             }
-        }
 
+            Rectangle {
+                id: progressRectangle
+                x: 196
+                y: 144
+                width: 224
+                height: 124
+                color: "#ffffff"
+                visible: result && !main.result.ready && !main.result.errorMessage
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    x: 35
+                    y: 18
+                    width: 133
+                    height: 14
+                    text: qsTr("File progress")
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pixelSize: 12
+                }
+
+                ProgressBar {
+                    id: progressBar1
+                    x: 12
+                    y: 79
+                    value: result ? main.result.percentCompleted / 100 : 0
+                }
+            }
+            Rectangle {
+                id: errorRectangle
+                x: 196
+                y: 144
+                width: 224
+                height: 124
+                color: "#ff0000"
+                visible: main.result && main.result.errorMessage !== undefined
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+
+                Text {
+                    x: 35
+                    y: 18
+                    width: 133
+                    height: 14
+                    text: (main.result && main.result.errorMessage) ? main.result.errorMessage : ''
+                    horizontalAlignment: Text.AlignHCenter
+                    font.pixelSize: 12
+                }
+            }
+        }
     }
-    function setIndex(index) {
-        main.fileIndex = index;
-        main.result = loader.results[index];
+    function setIndex(i) {
+        main.fileIndex = i;
+        main.result = loader.results[i];
+    }
+    function updateFaces() {
+        var facesList = [];
+        for (var face of main.faces)
+            facesList.push({
+                bbox: flick.mapFromItem(photoFrame, face.bbox.x, face.bbox.y, face.bbox.width, face.bbox.height),
+                text: face.demographics.gender + ' - ' + face.demographics.age.mean.toFixed(1)
+            });
+        repeater.model = facesList;
     }
 
     Connections {
         target: toolButtonOpen
         onClicked: fileDialog.open()
+    }
+
+    Connections {
+        target: dragArea
+        onWheel: {
+            var scaleBefore = photoFrame.scale;
+            photoFrame.scale += photoFrame.scale * wheel.angleDelta.y / 120 / 5;
+            updateFaces();
+        }
+    }
+    Connections {
+        target: main
+        onFacesChanged: updateFaces()
+    }
+
+    Connections {
+        target: image
+        onSourceSizeChanged: {
+            photoFrame.scale = Math.min(frame.width / image.sourceSize.width, frame.height / image.sourceSize.height);
+            photoFrame.x = (frame.width - image.sourceSize.width) / 2;
+            photoFrame.y = (frame.height - image.sourceSize.height) / 2;
+        }
     }
 }
 
