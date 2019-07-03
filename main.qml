@@ -13,7 +13,6 @@ Window {
     title: qsTr("Show faces")
     property var files: []
     property int fileIndex: 0
-    property real defaultSize: 200
     property real surfaceViewportRatio: 1.5
     property Result result: null
     property var faces: result && result.ready ? result.faces : []
@@ -195,21 +194,34 @@ Window {
                 id: errorRectangle
                 x: 196
                 y: 144
-                width: 224
+                width: 380
                 height: 124
                 color: "#ff0000"
-                visible: main.result && main.result.errorMessage !== undefined
+                visible: result && result.errorMessage !== undefined
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
 
                 Text {
-                    x: 35
+                    x: 113
                     y: 18
                     width: 133
                     height: 14
-                    text: (main.result && main.result.errorMessage) ? main.result.errorMessage : ''
+                    text: qsTr("Error")
+                    anchors.horizontalCenter: parent.horizontalCenter
                     horizontalAlignment: Text.AlignHCenter
                     font.pixelSize: 12
+                }
+
+                Text {
+                    x: 35
+                    y: 45
+                    width: 363
+                    height: 71
+                    text: result && result.errorMessage !== undefined ? result.errorMessage : ''
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    font.pixelSize: 12
+                    horizontalAlignment: Text.AlignHCenter
                 }
             }
         }
@@ -236,7 +248,6 @@ Window {
     Connections {
         target: dragArea
         onWheel: {
-            var scaleBefore = photoFrame.scale;
             photoFrame.scale += photoFrame.scale * wheel.angleDelta.y / 120 / 5;
             updateFaces();
         }
@@ -258,7 +269,17 @@ Window {
 
 
 
+
+
+
+
+
+
+
+
+
+
 /*##^## Designer {
-    D{i:11;anchors_x:0}D{i:13;anchors_x:0}
+    D{i:11;anchors_x:0}D{i:13;anchors_x:0}D{i:21;invisible:true}
 }
  ##^##*/
