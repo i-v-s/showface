@@ -84,7 +84,13 @@ void FaceLoader::setFiles(const QList<QUrl> &files)
 
 void FaceLoader::resultPercentCompletedChanged(float)
 {
-    float sum = std::accumulate(m_results.begin(), m_results.end(), 0.0f, [](float a, const auto &r){return a + r->percentCompleted();});
-    m_percentCompleted = sum / m_results.size();
+    using namespace std;
+    const auto [sum, count] = accumulate(m_results.begin(), m_results.end(), make_pair(0.0f, 0), [](auto p, const auto &r){
+        if (r->errorMessage().isValid())
+            return p;
+        else
+            return make_pair(p.first + r->percentCompleted(), p.second + 1);
+    });
+    m_percentCompleted = count ? sum / count : 100.0f;
     emit percentCompletedChanged(m_percentCompleted);
 }

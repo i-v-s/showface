@@ -24,7 +24,7 @@ void Result::uploadFinished()
 
 void Result::uploadProgress(qint64 bytesSent, quint64 bytesTotal)
 {
-    m_percentCompleted = float(bytesSent) / float(bytesTotal) * 85.0f;
+    m_percentCompleted = bytesTotal ? float(bytesSent) / float(bytesTotal) * 85.0f : 0.0f;
     emit percentCompletedChanged(m_percentCompleted);
 }
 

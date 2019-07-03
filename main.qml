@@ -50,20 +50,30 @@ Window {
                 height: 40
                 text: qsTr("Open images")
             }
-
-            ProgressBar {
-                id: progressBar
-                x: 124
-                y: 17
-                value: loader.percentCompleted / 100
-            }
-
-            Text {
-                id: progressText
-                x: 366
-                y: 13
-                text: loader.percentCompleted.toFixed(1) + '%'
-                font.pixelSize: 12
+            Frame {
+                anchors.left: parent.left
+                anchors.leftMargin: 110
+                anchors.right: parent.right
+                anchors.rightMargin: 0
+                anchors.top: parent.top
+                anchors.topMargin: 0
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 0
+                ProgressBar {
+                    id: progressBar
+                    visible: result
+                    x: -6
+                    y: 5
+                    value: loader.percentCompleted / 100
+                }
+                Text {
+                    id: progressText
+                    x: 233
+                    y: 1
+                    visible: result
+                    text: loader.percentCompleted.toFixed(1) + '%'
+                    font.pixelSize: 12
+                }
             }
         }
 
@@ -279,7 +289,12 @@ Window {
 
 
 
+
+
+
+
 /*##^## Designer {
-    D{i:11;anchors_x:0}D{i:13;anchors_x:0}D{i:21;invisible:true}
+    D{i:6;anchors_height:24;anchors_width:530;anchors_x:110;anchors_y:8}D{i:12;anchors_x:0}
+D{i:14;anchors_x:0}D{i:22;invisible:true}
 }
  ##^##*/
