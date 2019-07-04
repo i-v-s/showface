@@ -1,6 +1,6 @@
-import QtQuick 2.12
-import QtQuick.Window 2.12
-import QtQuick.Controls 2.4
+import QtQuick 2.7
+import QtQuick.Window 2.2
+import QtQuick.Controls 2.2
 import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.3
 import showface.backend 1.0
@@ -26,7 +26,7 @@ Window {
         title: "Please choose a files to process"
         selectExisting: true
         selectMultiple: true
-        nameFilters: [ "Image files (*.jpg *.png *.gif)", "All files (*)" ]
+        nameFilters: [ "Image files (*.jpg *.jpeg *.png *.gif)", "All files (*)" ]
         onAccepted: {
             loader.files = fileDialog.fileUrls
             main.files = fileDialog.fileUrls;

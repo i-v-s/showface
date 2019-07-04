@@ -20,3 +20,11 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Core Qt5::Quick faceloader)
 
 add_executable(showface-cli "cli.cpp")
 target_link_libraries(showface-cli PRIVATE Qt5::Core Qt5::Quick Qt5::Network faceloader)
+
+install(TARGETS showface showface-cli DESTINATION "bin")
+install(TARGETS faceloader DESTINATION "lib")
+
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Igor Smirnov")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml-module-qt-labs-folderlistmodel, qml-module-qt-labs-settings")
+include(CPack)
