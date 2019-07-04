@@ -40,11 +40,11 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
-    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file to copy."));
+    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file(s) to copy."));
     parser.process(app);
     const auto urls = prepareNames(parser.positionalArguments());
     if (urls.empty())
-        return 0;
+        parser.showHelp();
     FaceLoader loader;
     loader.setFiles(urls);
     int processedCount = 0;
