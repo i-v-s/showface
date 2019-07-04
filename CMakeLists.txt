@@ -27,8 +27,6 @@ install(TARGETS libshowface DESTINATION "lib")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Igor Smirnov")
 
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml-module-qt-labs-folderlistmodel")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml-module-qt-labs-settings")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml-module-qtquick-controls")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "qml-module-qt-labs-folderlistmodel,qml-module-qt-labs-settings,qml-module-qtquick-controls,qml-module-qtquick-controls2,qml-module-qtquick-dialogs")
 
 include(CPack)
