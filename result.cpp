@@ -1,4 +1,5 @@
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QJsonArray>
 #include "result.h"
 
@@ -9,7 +10,7 @@ void Result::uploadFinished()
     if(m_networkReply->error() == QNetworkReply::NoError)
     {
         auto document = QJsonDocument::fromJson(m_networkReply->readAll());
-        auto array = document["data"].toArray();
+        auto array = document.object()["data"].toArray();
         m_faces.clear();
         for(auto obj: array)
             m_faces.append(QVariant(obj));

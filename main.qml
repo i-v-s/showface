@@ -242,11 +242,13 @@ Window {
     }
     function updateFaces() {
         var facesList = [];
-        for (var face of main.faces)
+        for (var i in main.faces) {
+            var face = main.faces[i];
             facesList.push({
                 bbox: flick.mapFromItem(photoFrame, face.bbox.x, face.bbox.y, face.bbox.width, face.bbox.height),
                 text: face.demographics.gender + ' - ' + face.demographics.age.mean.toFixed(1)
             });
+        }
         repeater.model = facesList;
     }
 
