@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     parser.setOptionsAfterPositionalArgumentsMode(QCommandLineParser::ParseAsPositionalArguments);
-    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source file(s) to copy."));
+    parser.addPositionalArgument("source", QCoreApplication::translate("main", "Source image file(s) and/or dir(s) to find faces."));
     parser.process(app);
     const auto urls = prepareNames(parser.positionalArguments());
     if (urls.empty())
